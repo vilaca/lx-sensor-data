@@ -32,7 +32,7 @@ public class Importer {
 		SpringApplication.run(Importer.class, args);
 	}
 
-	@Scheduled(fixedDelay = 15 * 60 * 60 * 1000, initialDelay = 500)
+	@Scheduled(fixedDelay = 15 * 60 * 1000, initialDelay = 500)
 	public void importMetrics() {
 
 		update.increment();
