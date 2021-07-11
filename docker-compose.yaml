@@ -1,0 +1,57 @@
+---
+version: '3.1'
+
+services:
+    prometheus-1:
+        image: prom/prometheus:v2.28.1
+        volumes:
+            - ./prometheus/prometheus1.yaml:/etc/prometheus/prometheus1.yaml
+            - ./prometheus/rules.yaml:/etc/prometheus/server/rules.yaml
+            - ./storage/prometheus-1:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus1.yaml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--storage.tsdb.max-block-duration=30m'
+            - '--storage.tsdb.min-block-duration=30m'
+            - '--web.enable-lifecycle'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+        links:
+            - alertmanager:alertmanager
+            - importer:importer
+        ports:
+            - 9081:9090
+        restart: always
+
+    alertmanager:
+      image: prom/alertmanager:v0.22.2
+      ports:
+          - 9093:9093
+      volumes:
+          - ./alertmanager/alertmanager.yaml:/etc/alertmanager/config.yaml
+      restart: always
+      command:
+          - '--config.file=/etc/alertmanager/config.yaml'
+          - '--storage.path=/alertmanager'
+      restart: always
+
+    importer:
+      image: importer:latest
+      ports:
+          - 8080:8080
+      restart: always
+
+    grafana:
+        image: grafana/grafana:8.0.5
+        user: "104"
+        depends_on:
+            - prometheus-1
+        ports:
+            - 3000:3000
+        volumes:
+            - ./storage/grafana:/var/lib/grafana
+            - ./grafana/provisioning/:/etc/grafana/provisioning/
+   #     env_file:
+    #        - ./grafana.config
+        restart: always
+
