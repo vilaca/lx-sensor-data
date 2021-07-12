@@ -4,7 +4,7 @@ spring:
   main:
     banner-mode: "off"
 
-logging.level.root: WARN
+logging.level.root: DEBUG
 
 management:
   endpoints:

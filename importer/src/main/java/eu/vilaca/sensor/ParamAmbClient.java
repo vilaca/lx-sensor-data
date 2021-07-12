@@ -6,6 +6,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 class ParamAmbClient {
@@ -19,7 +20,7 @@ class ParamAmbClient {
 					responseBody,
 					mapper.getTypeFactory().constructCollectionType(List.class, Event.class));
 		} catch (IOException e) {
-			return null;
+			return Collections.emptyList();
 		}
 	}
 
@@ -28,11 +29,10 @@ class ParamAmbClient {
 		final var request = new Request.Builder()
 				.url("http://opendata-cml.qart.pt:8080/lastmeasurements")
 				.build();
-
 		try (Response response = client.newCall(request).execute()) {
 			return response.body().string();
 		} catch (IOException e) {
-			return null;
+			return "";
 		}
 	}
 }

@@ -2,22 +2,28 @@ package eu.vilaca.sensor;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 @EnableScheduling
 public class Importer {
+
+	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
 	private final MeterRegistry meterRegistry;
 	private final Counter update;
 	private final Counter updateSuccess;
 	private final Counter dlFailed;
 	private final Counter psFailed;
+
 	private List<Event> events;
 
 	public Importer(MeterRegistry meterRegistry) {
@@ -32,8 +38,10 @@ public class Importer {
 		SpringApplication.run(Importer.class, args);
 	}
 
-	@Scheduled(fixedDelay = 15 * 60 * 1000, initialDelay = 500)
-	public void importMetrics() {
+	@Scheduled(fixedDelay = 10 * 60 * 1000, initialDelay = 500)
+	private void importMetrics() {
+
+		logger.debug("Import metrics started.");
 
 		update.increment();
 
@@ -52,9 +60,18 @@ public class Importer {
 		this.events = events;
 
 		for (Event event : events) {
-			this.meterRegistry.gauge("sensor-param-amb-lx", event.getTags(), event.getValue());
+			final var tags = event.getTags();
+			if (logger.isDebugEnabled()) {
+				final var tagContents = tags.stream()
+						.map(tag -> tag.getKey() + ": " + tag.getValue() + ", ")
+						.collect(Collectors.joining());
+				logger.debug(event.getValue() + " = " + tagContents);
+			}
+			this.meterRegistry.gauge("sensor-param-amb-lx", tags, event.getValue());
 		}
 
 		updateSuccess.increment();
+
+		logger.debug("Import metrics finished.");
 	}
 }
