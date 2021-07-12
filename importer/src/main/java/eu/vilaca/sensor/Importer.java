@@ -1,7 +1,6 @@
 package eu.vilaca.sensor;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -9,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -18,22 +16,6 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
 
-	private final MeterRegistry meterRegistry;
-	private final Counter update;
-	private final Counter updateSuccess;
-	private final Counter dlFailed;
-	private final Counter psFailed;
-
-	private List<Event> events;
-
-	public Importer(MeterRegistry meterRegistry) {
-		this.meterRegistry = meterRegistry;
-		this.update = meterRegistry.counter("import started");
-		this.updateSuccess = meterRegistry.counter("import success");
-		this.dlFailed = meterRegistry.counter("import failed error downloading.");
-		this.psFailed = meterRegistry.counter("import failed error parsing.");
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(Importer.class, args);
 	}
@@ -41,25 +23,24 @@ public class Importer {
 	@Scheduled(fixedDelay = 10 * 60 * 1000, initialDelay = 500)
 	private void importMetrics() {
 
-		logger.debug("Import metrics started.");
-
-		update.increment();
+		Metrics.counter("import-param-amb-lx", "status", "started").increment();
 
 		final var responseBody = ParamAmbClient.getMetrics();
-		if (responseBody == null) {
-			dlFailed.increment();
+		if (responseBody.isEmpty()) {
+			Metrics.counter("import-param-amb-lx", "status", "download-failed").increment();
 			return;
 		}
 
 		final var events = ParamAmbClient.parseMetrics(responseBody);
-		if (events == null) {
-			psFailed.increment();
+		if (events.isEmpty()) {
+			Metrics.counter("import-param-amb-lx", "status", "parse-failed").increment();
 			return;
 		}
 
-		this.events = events;
-
 		for (Event event : events) {
+			if (event.isDown()) {
+				continue;
+			}
 			final var tags = event.getTags();
 			if (logger.isDebugEnabled()) {
 				final var tagContents = tags.stream()
@@ -67,10 +48,10 @@ public class Importer {
 						.collect(Collectors.joining());
 				logger.debug(event.getValue() + " = " + tagContents);
 			}
-			this.meterRegistry.gauge("sensor-param-amb-lx", tags, event.getValue());
+			Metrics.gauge("sensor-param-amb-lx", tags, event.getValue());
 		}
 
-		updateSuccess.increment();
+		Metrics.counter("import-param-amb-lx", "status", "success").increment();
 
 		logger.debug("Import metrics finished.");
 	}

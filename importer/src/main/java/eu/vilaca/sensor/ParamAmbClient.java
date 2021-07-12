@@ -13,7 +13,7 @@ class ParamAmbClient {
 	private ParamAmbClient() {
 	}
 
-	public static List<Event> parseMetrics(String responseBody) {
+	static List<Event> parseMetrics(String responseBody) {
 		final var mapper = new ObjectMapper();
 		try {
 			return mapper.readValue(
@@ -24,7 +24,7 @@ class ParamAmbClient {
 		}
 	}
 
-	public static String getMetrics() {
+	static String getMetrics() {
 		final var client = new OkHttpClient();
 		final var request = new Request.Builder()
 				.url("http://opendata-cml.qart.pt:8080/lastmeasurements")
