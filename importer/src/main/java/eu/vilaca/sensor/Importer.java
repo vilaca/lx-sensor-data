@@ -1,5 +1,6 @@
 package eu.vilaca.sensor;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -15,6 +18,13 @@ import java.util.stream.Collectors;
 public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
+
+	private static final Map<String, Double> strongRefGauge = new ConcurrentHashMap<>();
+	private final MeterRegistry registry;
+
+	public Importer(MeterRegistry registry) {
+		this.registry = registry;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(Importer.class, args);
@@ -48,7 +58,8 @@ public class Importer {
 						.collect(Collectors.joining());
 				logger.debug(event.getValue() + " = " + tagContents);
 			}
-			Metrics.gauge("sensor-param-amb-lx", tags, event.getValue());
+			registry.gauge("sensor-param-amb-lx", tags, strongRefGauge, g -> g.get(event.getId()))
+					.put(event.getId(), event.getValue());
 		}
 
 		Metrics.counter("import-param-amb-lx", "status", "success").increment();
