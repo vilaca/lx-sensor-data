@@ -36,14 +36,14 @@ services:
       restart: always
 
     importer:
-      image: importer:latest
+      image: importer
+      build: ./importer/.
       ports:
           - 8080:8080
       restart: always
 
     grafana:
         image: grafana/grafana:8.0.5
-        user: "104"
         depends_on:
             - prometheus-1
         ports:
@@ -51,7 +51,5 @@ services:
         volumes:
             - ./storage/grafana:/var/lib/grafana
             - ./grafana/provisioning/:/etc/grafana/provisioning/
-   #     env_file:
-    #        - ./grafana.config
         restart: always
 
