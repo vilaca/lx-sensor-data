@@ -1,29 +1,19 @@
 package eu.vilaca.sensor;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 @SpringBootApplication
 @EnableScheduling
 public class Importer {
 
-	private static final Logger logger = LoggerFactory.getLogger(Importer.class);
+	private final RegisterAndUpdateMetrics metrics;
 
-	private static final Map<String, Double> strongRefGauge = new ConcurrentHashMap<>();
-	private final MeterRegistry registry;
-
-	public Importer(MeterRegistry registry) {
-		this.registry = registry;
+	public Importer(RegisterAndUpdateMetrics metrics) {
+		this.metrics = metrics;
 	}
 
 	public static void main(String[] args) {
@@ -47,23 +37,8 @@ public class Importer {
 			return;
 		}
 
-		for (Event event : events) {
-			if (event.isDown()) {
-				continue;
-			}
-			final var tags = event.getTags();
-			if (logger.isDebugEnabled()) {
-				final var tagContents = tags.stream()
-						.map(tag -> tag.getKey() + ": " + tag.getValue() + ", ")
-						.collect(Collectors.joining());
-				logger.debug(event.getValue() + " = " + tagContents);
-			}
-			registry.gauge("sensor-param-amb-lx", tags, strongRefGauge, g -> g.get(event.getId()))
-					.put(event.getId(), event.getValue());
-		}
+		metrics.registerAndUpdateMetrics(events);
 
 		Metrics.counter("import-param-amb-lx", "status", "success").increment();
-
-		logger.debug("Import metrics finished.");
 	}
 }

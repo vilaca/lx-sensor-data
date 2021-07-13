@@ -36,8 +36,8 @@ class Event {
 				entry("QA00O3", of(of("desc", "Air quality"), of("subdesc", "Ozone"))),
 				entry("QA0NO2", of(of("desc", "Air quality"), of("subdesc", "Nitrogen dioxide"))),
 				entry("QA0SO2", of(of("desc", "Air quality"), of("subdesc", "Sulfur dioxide"))),
-				entry("QAPM10", of(of("desc", "Air quality"), of("subdesc", "Particles < 10 \uF06Dm"))),
-				entry("QAPM25", of(of("desc", "Air quality"), of("subdesc", "Particles < 2.5 \uF06Dm"))),
+				entry("QAPM10", of(of("desc", "Air quality"), of("subdesc", "Particles < 10 µm"))),
+				entry("QAPM25", of(of("desc", "Air quality"), of("subdesc", "Particles < 2.5 µm"))),
 				entry("RULAEQ", of(of("desc", "Noise"), of("subdesc", "Continuous noise level."))));
 	}
 
@@ -91,12 +91,11 @@ class Event {
 			tags.add(of("location", this.address));
 		} else {
 			tags.add(of("location", this.address.substring(idx + 3)));
-			tags.add(of("zone", this.address.substring(0, idx)));
+			tags.add(of("location-area", this.address.substring(0, idx)));
 		}
 		tags.add(of("unit", this.unit));
 		tags.add(of("lat", coordinates.lat.toString()));
 		tags.add(of("lon", coordinates.lng.toString()));
-		tags.add(of("last-update", date + "-" + dateStandard));
 		for (var entry : buildDic().entrySet()) {
 			if (this.id.startsWith(entry.getKey())) {
 				tags.addAll(entry.getValue());
