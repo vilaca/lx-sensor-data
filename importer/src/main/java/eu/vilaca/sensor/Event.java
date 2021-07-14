@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.Tag;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static io.micrometer.core.instrument.Tag.of;
 import static java.util.List.of;

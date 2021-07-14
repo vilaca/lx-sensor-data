@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +31,7 @@ class RegisterAndUpdateMetrics {
 			if (event.isDown()) {
 				continue;
 			}
-			final var tags = tagsCache.putIfAbsent(event.getId(), event.getTags());
+			final var tags = getEvents(event.getId(), event);
 			if (LOGGER.isDebugEnabled()) {
 				final var tagContents = tags.stream()
 						.map(tag -> tag.getKey() + ": " + tag.getValue() + ", ")
@@ -40,5 +41,14 @@ class RegisterAndUpdateMetrics {
 			registry.gauge("sensor-param-amb-lx", tags, strongRefGauge, g -> g.get(event.getId()))
 					.put(event.getId(), event.getValue());
 		}
+	}
+
+	private List<Tag> getEvents(String id, Event event) {
+		var tags = tagsCache.get(id);
+		if (Objects.isNull(tags)) {
+			tags = event.getTags();
+			tagsCache.put(id, tags);
+		}
+		return tags;
 	}
 }
