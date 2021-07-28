@@ -1,0 +1,13 @@
+server:
+  port: 8080
+spring:
+  main:
+    banner-mode: off
+
+logging.level.root: ERROR
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
