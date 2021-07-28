@@ -18,7 +18,7 @@ services:
             - '--web.console.templates=/usr/share/prometheus/consoles'
         links:
             - alertmanager:alertmanager
-            - importer:importer
+            - exporter:exporter
         ports:
             - 9081:9090
         restart: always
@@ -35,9 +35,9 @@ services:
           - '--storage.path=/alertmanager'
       restart: always
 
-    importer:
-      image: importer
-      build: ./importer/.
+    exporter:
+      image: exporter
+      build: ./exporter/.
       ports:
           - 8080:8080
       restart: always
