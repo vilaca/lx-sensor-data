@@ -2,8 +2,8 @@ package eu.vilaca.sensor;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -12,19 +12,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
+@Slf4j
 @Service
-class RegisterAndUpdateMetrics {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(RegisterAndUpdateMetrics.class);
+class Loader {
 
 	private final Map<String, Double> strongRefGauge = new HashMap<>(512);
 	private final Map<String, List<Tag>> tagsCache = new HashMap<>(512);
 
 	private final MeterRegistry registry;
-
-	RegisterAndUpdateMetrics(MeterRegistry registry) {
-		this.registry = registry;
-	}
 
 	void registerAndUpdateMetrics(List<Event> events) {
 		events.stream()
@@ -35,13 +31,13 @@ class RegisterAndUpdateMetrics {
 	private void registerAndUpdateMetric(Event event) {
 
 		final var tags = getEvents(event);
-		if (LOGGER.isDebugEnabled()) {
+		if (log.isDebugEnabled()) {
 			final var tagContents = tags.stream()
 					.map(tag -> tag.getKey() + ": " + tag.getValue() + ", ")
 					.collect(Collectors.joining());
-			LOGGER.debug(event.getValue() + " = " + tagContents);
+			log.debug(event.getValue() + " = " + tagContents);
 		}
-		registry.gauge("sensor-param-amb-lx", tags, strongRefGauge, g -> g.get(event.getId()))
+		Objects.requireNonNull(registry.gauge("sensor-param-amb-lx", tags, strongRefGauge, g -> g.get(event.getId())))
 				.put(event.getId(), event.getValue());
 	}
 

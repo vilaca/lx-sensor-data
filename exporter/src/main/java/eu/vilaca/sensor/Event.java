@@ -1,6 +1,7 @@
 package eu.vilaca.sensor;
 
 import io.micrometer.core.instrument.Tag;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,9 @@ import static io.micrometer.core.instrument.Tag.of;
 import static java.util.List.of;
 import static java.util.Map.*;
 
+@Data
 class Event {
+
 	private String id;
 	private String avg;
 	private String date;
@@ -38,46 +41,6 @@ class Event {
 				entry("QAPM10", of(of("desc", "Air quality"), of("subdesc", "Particles < 10 µm"))),
 				entry("QAPM25", of(of("desc", "Air quality"), of("subdesc", "Particles < 2.5 µm"))),
 				entry("RULAEQ", of(of("desc", "Noise"), of("subdesc", "Continuous noise level."))));
-	}
-
-	public String getId() {
-		return this.id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public void setAvg(String avg) {
-		this.avg = avg;
-	}
-
-	public void setDate(String date) {
-		this.date = date;
-	}
-
-	public void setDateStandard(String dateStandard) {
-		this.dateStandard = dateStandard;
-	}
-
-	public void setUnit(String unit) {
-		this.unit = unit;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public void setCoordinates(Coordinates coordinates) {
-		this.coordinates = coordinates;
-	}
-
-	public Double getValue() {
-		return value;
-	}
-
-	public void setValue(Double value) {
-		this.value = value;
 	}
 
 	List<Tag> getTags() {
@@ -111,56 +74,12 @@ class Event {
 		return this.id.substring(0, this.id.length() - 4);
 	}
 
-	@Override
-	public String toString() {
-		return "Event{" +
-				"id='" + id + '\'' +
-				", avg='" + avg + '\'' +
-				", date='" + date + '\'' +
-				", dateStandard='" + dateStandard + '\'' +
-				", value=" + value +
-				", unit='" + unit + '\'' +
-				", address='" + address + '\'' +
-				", coordinates=" + coordinates +
-				'}';
-	}
-
+	@Data
 	private static class Coordinates {
 		private Integer x;
 		private Integer y;
 		private Integer z;
 		private Double lat;
 		private Double lng;
-
-		public void setX(Integer x) {
-			this.x = x;
-		}
-
-		public void setY(Integer y) {
-			this.y = y;
-		}
-
-		public void setLat(Double lat) {
-			this.lat = lat;
-		}
-
-		public void setLng(Double lng) {
-			this.lng = lng;
-		}
-
-		public void setZ(Integer z) {
-			this.z = z;
-		}
-
-		@Override
-		public String toString() {
-			return "Coordinates{" +
-					"x=" + x +
-					", y=" + y +
-					", z=" + z +
-					", lat=" + lat +
-					", lng=" + lng +
-					'}';
-		}
 	}
 }
